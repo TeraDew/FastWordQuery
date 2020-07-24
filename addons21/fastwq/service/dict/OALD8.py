@@ -1,10 +1,10 @@
 # -*- coding:utf-8 -*-
+from ..base import config
 import os
 import re
 import random
 from ..base import *
-grand_father_dir=os.path.join( os.path.dirname(__file__),'../..')
-from ..base import config
+grand_father_dir = os.path.join(os.path.dirname(__file__), '../..')
 
 VOICE_PATTERN = r'<a href="sound://([\w/]+\w*\.mp3)"><img src="img/spkr_%s.png"></a>'
 VOICE_PATTERN_WQ = r'<span class="%s"><a href="sound://([\w/]+\w*\.mp3)">(.*?)</span %s>'
@@ -152,7 +152,6 @@ class OALD8(MdxService):
     def fld_definate(self):
         ''' 提取汉语释义 '''
 
-
         def wrap_structure(m):
             '''将提取的结构包装为html'''
             temp = 0
@@ -215,39 +214,6 @@ class OALD8(MdxService):
                         dr_part = ''
                 m_list.append([3, dr+dr_part])
 
-        def get_phrase_def(m_list, soup):
-            # 提取短语解释
-            phrase_title = soup.find(
-                'span', attrs={'class': 'id'})
-            if not phrase_title:
-                phrase_title = soup.find(
-                    'span', attrs={'class': 'pv'})
-            if phrase_title:
-                title = phrase_title.text
-                m_list.append([1, title])
-                phrase_def_soup_list = soup.findAll(
-                    'span', attrs={'class': 'def-g'})
-                if phrase_def_soup_list:
-                    for phrase_def_soup in phrase_def_soup_list:
-                        bi_lng_def_list = phrase_def_soup.findAll(
-                            'span', attrs={'class': {'d', 'ud'}})
-                        if bi_lng_def_list:
-                            for bi_lng_def in bi_lng_def_list:
-                                chn_def = bi_lng_def.find('span')
-                                if chn_def:
-                                    m_list.append([2, chn_def.text])
-                        else:
-                            bi_lng_def_list = soup.findAll(
-                                'span', attrs={'class': 'd'})
-                            if bi_lng_def_list:
-                                for bi_lng_def in bi_lng_def_list:
-                                    child = bi_lng_def.find('span')
-                                    if not child:
-                                        m_list.append([2, bi_lng_def.text])
-
-        def get_derivative(m_list, def_derivative):
-            pass
-
         def get_chn_def(m_list, present_part):
             def_bi_lng = present_part.find(
                 'span', attrs={'class': 'def-g'})
@@ -257,6 +223,25 @@ class OALD8(MdxService):
                     'span', attrs={'class': 'chn'})[-1].text
                 m_list.append([4, chn_def])
 
+        def get_phrase_def(soup):
+            ''' 提取短语解释 '''
+            m_list = []
+            phrase_title = soup.find(
+                'span', attrs={'class': 'idh'})
+            if not phrase_title:
+                phrase_title = soup.find(
+                    'span', attrs={'class': 'pv'})
+            if phrase_title:
+                title = phrase_title.text
+                m_list.append([1, title])
+                def_list = soup.findAll(
+                    'span', attrs={'class': {'n-g'}})
+                if def_list:
+                    for definition in def_list:
+                        get_chn_def(m_list, definition)
+
+            return simple_wrap(m_list)
+
         def get_def_list(m_list, present_part):
             def_list = present_part.findAll(
                 'span', attrs={'class': {'n-g'}})
@@ -265,7 +250,6 @@ class OALD8(MdxService):
                 for definition in def_list:
                     # 双语解释
                     if definition.parent.attrs == {'class': ['sense-g']}:
-                        def_derivative = definition.parent
 
                         get_chn_def(m_list, present_part)
                     get_chn_def(m_list, definition)
@@ -293,7 +277,7 @@ class OALD8(MdxService):
             get_dr(m_list, present_part)
 
         def extract_def(soup):
-            m = []
+            m_list = []
             entry_list = soup.findAll('span', attrs={'class': 'entry'})
             if entry_list:
                 for entry in entry_list:
@@ -309,7 +293,7 @@ class OALD8(MdxService):
                     #                 break
                     # if flag:
                     #     break
-                    m.append([1, title])
+                    m_list.append([1, title])
 
                     part_of_speech_list = []
                     temp = entry.find(
@@ -326,23 +310,24 @@ class OALD8(MdxService):
                             if not present_part:
                                 part_of_speech_text = entry.find(
                                     'span', attrs={'topic': True, 'bookmark': True, 'fk': False, 'class': 'Ref'}).text
-                                m.append([2, part_of_speech_text])
+                                m_list.append([2, part_of_speech_text])
                                 present_part = entry
-                                get_def_list(m, present_part)
+                                get_def_list(m_list, present_part)
                                 continue
-                            get_part(m, present_part)
+                            get_part(m_list, present_part)
 
                     elif not entry.find('span', attrs={'class': 'pos'}):
                         continue
                     else:
                         # 仅有单个词性
-                        get_part(m, entry)
-            else:
-                # 如果找不到则按照短语词条处理
-                get_phrase_def(m, soup)
-            return simple_wrap(m)
+                        get_part(m_list, entry)
+            return simple_wrap(m_list)
 
-        my_str = extract_def(soup)
+        my_str = ''
+        if ' ' in self.word:
+            my_str = get_phrase_def(soup)
+        else:
+            my_str = extract_def(soup)
         if my_str:
             return my_str
         else:

@@ -81,12 +81,12 @@ class OALD8(MdxService):
         html = self.get_html()
         if voice == 'gb':
             m = re.search(
-                r'<span.*?level="4".*?class="phon-gb">(.*?)</span>', html)
+                r'<span.*?class="phon-gb">(.*?)</span>', html)
             if m:
                 return m.groups()[0]
         elif voice == 'us':
             m = re.search(
-                r'<span.*?level="4".*?class="phon-us">(.*?)</span>', html)
+                r'<span.*?class="phon-us.*?">(.*?)</span>', html)
             if m:
                 return m.groups()[0]
         return ''

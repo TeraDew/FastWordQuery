@@ -227,10 +227,7 @@ class OALD8(MdxService):
             ''' 提取短语解释 '''
             m_list = []
             phrase_title = soup.find(
-                'span', attrs={'class': 'idh'})
-            if not phrase_title:
-                phrase_title = soup.find(
-                    'span', attrs={'class': 'pv'})
+                'span', attrs={'class': ['idh', 'pvh']})
             if phrase_title:
                 title = phrase_title.text
                 m_list.append([1, title])

@@ -189,8 +189,8 @@ class OALD8(MdxService):
             for ele in m_list:
                 line = (ele[0]-1)*2*'&nbsp;'+ele[1]
                 if ele[0] == 2:
-                    line = my_str.replace('verb', 'v.')
-                    line = my_str.replace('noun', 'n.')
+                    line = line.replace('verb', 'v.')
+                    line = line.replace('noun', 'n.')
                 if ele[0] == 3:
                     line = '<small>'+line+'</small>'
                 line = line+'<br>'

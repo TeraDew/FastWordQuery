@@ -152,101 +152,6 @@ class OALD8(MdxService):
     def fld_definate(self):
         ''' 提取汉语释义 '''
 
-        soup = parse_html(self.get_html())
-
-        def get_dr(m_list, present_part):
-            dr_list = present_part.findAll(
-                'span', attrs={'eid': True, 'id': True, 'class': 'dr-g'})
-            if dr_list:
-                for dr_container in dr_list:
-                    dr = dr_container.find(
-                        'span', attrs={'class': ['dr', 'zd']})
-                    if dr:
-                        dr = dr.text
-                    else:
-                        dr = ''
-                    dr_part = dr_container.find(
-                        'span', attrs={'class': 'pos-g'})
-                    if dr_part:
-                        dr_part = ' -->' + dr_part.text
-                    else:
-                        dr_part = ''
-                m_list.append([3, dr+dr_part])
-
-        def get_phrase_def(m_list, soup):
-            # 提取短语解释
-            phrase_title = soup.find(
-                'span', attrs={'class': 'id'})
-            if not phrase_title:
-                phrase_title = soup.find(
-                    'span', attrs={'class': 'pv'})
-            if phrase_title:
-                title = phrase_title.text
-                m_list.append([1, title])
-                phrase_def_soup_list = soup.findAll(
-                    'span', attrs={'class': 'def-g'})
-                if phrase_def_soup_list:
-                    for phrase_def_soup in phrase_def_soup_list:
-                        bi_lng_def_list = phrase_def_soup.findAll(
-                            'span', attrs={'class': {'d', 'ud'}})
-                        if bi_lng_def_list:
-                            for bi_lng_def in bi_lng_def_list:
-                                chn_def = bi_lng_def.find('span')
-                                if chn_def:
-                                    m_list.append([2, chn_def.text])
-                        else:
-                            bi_lng_def_list = soup.findAll(
-                                'span', attrs={'class': 'd'})
-                            if bi_lng_def_list:
-                                for bi_lng_def in bi_lng_def_list:
-                                    child = bi_lng_def.find('span')
-                                    if not child:
-                                        m_list.append([2, bi_lng_def.text])
-
-        def get_def_list(m_list, present_part):
-            def_list = present_part.findAll(
-                'span', attrs={'level': '2', 'class': 'n-g'})
-            if def_list:
-                # 有多个def
-                for definition in def_list:
-                    # 双语解释
-                    def_bi_lng = definition.find(
-                        'span', attrs={'class': 'def-g'})
-
-                    if def_bi_lng:
-                        # 提取汉语
-                        chn_def = def_bi_lng.findAll(
-                            'span', attrs={'localeuidoupc': '201', 'status': True, 'class': 'chn'})[-1].text
-                        m_list.append([4, chn_def])
-            else:
-                def_bi_lng = present_part.find(
-                    'span', attrs={'class': 'def-g'})
-
-                if def_bi_lng:
-                    chn_def = def_bi_lng.findAll(
-                        'span', attrs={'localeuidoupc': '201', 'status': True, 'class': 'chn'})[-1].text
-                    m_list.append([4, chn_def])
-
-        def get_part(m_list, present_part):
-            part = present_part.find(
-                'span', attrs={'class': 'pos', 'level': True, 'pos': True}).text
-            m_list.append([2, part])
-
-            classified_defs = present_part.findAll(
-                'span', attrs={'level': '2', 'class': 'sd-g'})
-
-            if classified_defs:
-                # 如果def有分类
-                for def_class in classified_defs:
-                    class_name = def_class.find(
-                        'span', attrs={'class': 'sd'}).findChildren()[0].text
-                    m_list.append([3, class_name])
-                    get_def_list(m_list, def_class)
-            else:
-                # 如果def没有分类
-                get_def_list(m_list, present_part)
-            # 变形
-            get_dr(m_list, present_part)
 
         def wrap_structure(m):
             '''将提取的结构包装为html'''
@@ -288,15 +193,113 @@ class OALD8(MdxService):
             my_str += '</p>'
             return my_str
 
+        soup = parse_html(self.get_html())
+
+        def get_dr(m_list, present_part):
+            # get_derivative(m_list, def_derivative)
+            # 获取派生词
+            dr_list = present_part.findAll(
+                'span', attrs={'class': ['dr-g']})
+            if dr_list:
+                for dr_container in dr_list:
+                    dr = dr_container.find(
+                        'span', attrs={'class': 'dr'}).text
+                    if not dr:
+                        dr = dr_container.find(
+                            'span', attrs={'class': 'zd'}).text
+                    dr_part = dr_container.find(
+                        'span', attrs={'class': 'pos-g'})
+                    if dr_part:
+                        dr_part = ' -->' + dr_part.text
+                    else:
+                        dr_part = ''
+                m_list.append([3, dr+dr_part])
+
+        def get_phrase_def(m_list, soup):
+            # 提取短语解释
+            phrase_title = soup.find(
+                'span', attrs={'class': 'id'})
+            if not phrase_title:
+                phrase_title = soup.find(
+                    'span', attrs={'class': 'pv'})
+            if phrase_title:
+                title = phrase_title.text
+                m_list.append([1, title])
+                phrase_def_soup_list = soup.findAll(
+                    'span', attrs={'class': 'def-g'})
+                if phrase_def_soup_list:
+                    for phrase_def_soup in phrase_def_soup_list:
+                        bi_lng_def_list = phrase_def_soup.findAll(
+                            'span', attrs={'class': {'d', 'ud'}})
+                        if bi_lng_def_list:
+                            for bi_lng_def in bi_lng_def_list:
+                                chn_def = bi_lng_def.find('span')
+                                if chn_def:
+                                    m_list.append([2, chn_def.text])
+                        else:
+                            bi_lng_def_list = soup.findAll(
+                                'span', attrs={'class': 'd'})
+                            if bi_lng_def_list:
+                                for bi_lng_def in bi_lng_def_list:
+                                    child = bi_lng_def.find('span')
+                                    if not child:
+                                        m_list.append([2, bi_lng_def.text])
+
+        def get_derivative(m_list, def_derivative):
+            pass
+
+        def get_chn_def(m_list, present_part):
+            def_bi_lng = present_part.find(
+                'span', attrs={'class': 'def-g'})
+
+            if def_bi_lng:
+                chn_def = def_bi_lng.findAll(
+                    'span', attrs={'class': 'chn'})[-1].text
+                m_list.append([4, chn_def])
+
+        def get_def_list(m_list, present_part):
+            def_list = present_part.findAll(
+                'span', attrs={'class': {'n-g'}})
+            if def_list:
+                # 有多个def
+                for definition in def_list:
+                    # 双语解释
+                    if definition.parent.attrs == {'class': ['sense-g']}:
+                        def_derivative = definition.parent
+
+                        get_chn_def(m_list, present_part)
+                    get_chn_def(m_list, definition)
+            else:
+                get_chn_def(m_list, present_part)
+
+        def get_part(m_list, present_part):
+            part = present_part.find('span', attrs={'class': 'pos'}).text
+            m_list.append([2, part])
+
+            classified_defs = present_part.findAll(
+                'span', attrs={'class': 'sd-g'})
+
+            if classified_defs:
+                # 如果def有分类
+                for def_class in classified_defs:
+                    class_name = def_class.find(
+                        'span', attrs={'class': 'sd'}).findChildren()[0].text
+                    m_list.append([3, class_name])
+                    get_def_list(m_list, def_class)
+            else:
+                # 如果def没有分类
+                get_def_list(m_list, present_part)
+            # 变形
+            get_dr(m_list, present_part)
+
         def extract_def(soup):
             m = []
             entry_list = soup.findAll('span', attrs={'class': 'entry'})
             if entry_list:
                 for entry in entry_list:
                     # 一个索引多个词条
-                    title = entry.find(
-                        'span', attrs={'class': 'h', 'level': '3'}).text
-                    '''检查查询单词是否等于词头'''
+                    title = entry.find('span', attrs={'class': 'h'}).text
+                    # 提取词头
                     # flag = False
                     # if m:
                     #     if m[0][1].lower() != title.lower():
@@ -309,12 +312,14 @@ class OALD8(MdxService):
                     m.append([1, title])
 
                     part_of_speech_list = []
-                    temp = entry.findAll(
-                        'span', attrs={'topic': True, 'bookmark': True, 'fk': False, 'class': 'Ref'})
+                    temp = entry.find(
+                        'span', attrs={'class': 'pos-g'}).findAll('span', attrs={'class', 'Ref'})
                     if temp:
                         # 如果有多个词性
                         for x in temp:
-                            part_of_speech_list.append(x.get('bookmark'))
+                            # 获取词性列表
+                            part_of_speech_list.append(
+                                x.find('a').get('href').strip('#'))
                         for part_of_speech in part_of_speech_list:
                             present_part = entry.find(
                                 'span', attrs={'id': part_of_speech})
@@ -327,7 +332,7 @@ class OALD8(MdxService):
                                 continue
                             get_part(m, present_part)
 
-                    elif not entry.find('span', attrs={'class': 'pos', 'level': True, 'pos': True}):
+                    elif not entry.find('span', attrs={'class': 'pos'}):
                         continue
                     else:
                         # 仅有单个词性

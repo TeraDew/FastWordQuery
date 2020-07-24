@@ -192,7 +192,7 @@ class OALD8(MdxService):
                     line = my_str.replace('verb', 'v.')
                     line = my_str.replace('noun', 'n.')
                 if ele[0] == 3:
-                    line = '<small>'+my_str+'</small>'
+                    line = '<small>'+line+'</small>'
                 line = line+'<br>'
                 my_str += line
             my_str += '</p>'

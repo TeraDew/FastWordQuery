@@ -187,8 +187,14 @@ class OALD8(MdxService):
                 return ''
             my_str = '<p>'
             for ele in m_list:
-                my_str += (ele[0]-1)*2*'&nbsp;'+ele[1]
-                my_str += '<br>'
+                line = (ele[0]-1)*2*'&nbsp;'+ele[1]
+                if ele[0] == 2:
+                    line = my_str.replace('verb', 'v.')
+                    line = my_str.replace('noun', 'n.')
+                if ele[0] == 3:
+                    line = '<small>'+my_str+'</small>'
+                line = line+'<br>'
+                my_str += line
             my_str += '</p>'
             return my_str
 
@@ -212,7 +218,7 @@ class OALD8(MdxService):
                         dr_part = ' -->' + dr_part.text
                     else:
                         dr_part = ''
-                m_list.append([3, dr+dr_part])
+                m_list.append([2, dr+dr_part])
 
         def get_chn_def(m_list, present_part):
             def_bi_lng = present_part.find(

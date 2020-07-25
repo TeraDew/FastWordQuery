@@ -79,16 +79,10 @@ class OALD8(MdxService):
     def _fld_phonetic(self, html, voice):
         ''' 获取音标 '''
         html = self.get_html()
-        if voice == 'gb':
-            m = re.search(
-                r'<span.*?class="phon-gb">(.*?)</span>', html)
-            if m:
-                return m.groups()[0]
-        elif voice == 'us':
-            m = re.search(
-                r'<span.*?class="phon-us.*?">(.*?)</span>', html)
-            if m:
-                return m.groups()[0]
+        reg = re.compile('<span.*?class="phon-'+voice+'">(.*?)</span>')
+        m = reg.search(html)
+        if m:
+            return m.groups()[0]
         return ''
 
     @export('BRE_PHON')
@@ -123,7 +117,7 @@ class OALD8(MdxService):
 
     @export('BRE_PRON')
     def fld_voicebre(self):
-        return self._fld_voice(self.get_html(), 'uk')
+        return self._fld_voice(self.get_html(), 'gb')
 
     @export('AME_PRON')
     def fld_voiceame(self):
@@ -229,19 +223,18 @@ class OALD8(MdxService):
                     'span', attrs={'class': 'chn'})[-1].text
                 m_list.append([4, chn_def])
 
-        def get_phrase_def(soup):
+        def extract_phrase_def(soup):
             ''' 提取短语解释 '''
             m_list = []
-            phrase_title = soup.find(
-                'span', attrs={'class': ['idh', 'pvh']})
-            if phrase_title:
-                title = phrase_title.text
-                m_list.append([1, title])
-                def_list = soup.findAll(
-                    'span', attrs={'class': {'n-g'}})
-                if def_list:
-                    for definition in def_list:
-                        get_chn_def(m_list, definition)
+            entry_list = soup.findAll('span', attrs={'class': 'entry'})
+            if entry_list:
+                for entry in entry_list:
+                    phrase_title = entry.find(
+                        'span', attrs={'class': ['idh', 'pvh', 'h']})
+                    if phrase_title:
+                        title = phrase_title.text
+                        m_list.append([1, title])
+                        get_def_list(m_list, entry)
 
             return simple_wrap(m_list)
 
@@ -253,7 +246,6 @@ class OALD8(MdxService):
                 for definition in def_list:
                     # 双语解释
                     if definition.parent.attrs == {'class': ['sense-g']}:
-
                         get_chn_def(m_list, present_part)
                     get_chn_def(m_list, definition)
             else:
@@ -328,7 +320,7 @@ class OALD8(MdxService):
 
         my_str = ''
         if ' ' in self.word:
-            my_str = get_phrase_def(soup)
+            my_str = extract_phrase_def(soup)
         else:
             my_str = extract_def(soup)
         if my_str:

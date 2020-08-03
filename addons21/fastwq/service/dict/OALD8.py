@@ -185,6 +185,7 @@ class OALD8(MdxService):
                 if ele[0] == 2:
                     line = line.replace('verb', 'v.')
                     line = line.replace('noun', 'n.')
+                    line = line.replace('adjective', 'adj.')
                 if ele[0] == 3:
                     line = '<small>'+line+'</small>'
                 line = line+'<br>'
@@ -324,6 +325,13 @@ class OALD8(MdxService):
         else:
             my_str = extract_def(soup)
         if my_str:
+            return my_str
+        elif soup.find('span', attrs={'class': 'derived'}):
+            ''' 如果是派生词，则自动跳转'''
+            stem = soup.find('span', attrs={'class': 'derived'}).find(
+                'a', attrs={'id': 'drv'}).text
+            soup = parse_html(self._get_definition_mdx(stem))
+            my_str = extract_def(soup)
             return my_str
         else:
             return ''

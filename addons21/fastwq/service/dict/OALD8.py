@@ -246,8 +246,10 @@ class OALD8(MdxService):
                 # 有多个def
                 for definition in def_list:
                     # 双语解释
-                    if definition.parent.attrs == {'class': ['sense-g']}:
+                    if 'sense-g' in definition.parent.attrs['class'] \
+                        or 'id-g' in definition.parent.attrs['class']:
                         get_chn_def(m_list, present_part)
+                        return
                     get_chn_def(m_list, definition)
             else:
                 get_chn_def(m_list, present_part)

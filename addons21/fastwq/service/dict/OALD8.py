@@ -213,7 +213,7 @@ class OALD8(MdxService):
                         dr_part = ' -->' + dr_part.text
                     else:
                         dr_part = ''
-                m_list.append([2, dr+dr_part])
+                    m_list.append([2, dr+dr_part])
 
         def get_chn_def(m_list, present_part):
             def_bi_lng = present_part.find(

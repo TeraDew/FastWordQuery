@@ -100,7 +100,7 @@ class OALD8(MdxService):
         soup = parse_html(html)
         voice_links = soup.findAll('a', attrs={'class': 'fayin'})
         sound_name = ''
-        safe_word = self.word
+        safe_word = self.word.lower()
         if '-' in safe_word or ' ' in safe_word:
             safe_word = safe_word.replace('-', '_').lower()
             safe_word = safe_word.replace(' ', '_').lower()

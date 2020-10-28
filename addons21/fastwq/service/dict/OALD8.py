@@ -303,16 +303,27 @@ class OALD8(MdxService):
                             part_of_speech_list.append(
                                 x.find('a').get('href').strip('#'))
                         for part_of_speech in part_of_speech_list:
+                            present_part = None
                             present_part = entry.find(
                                 'span', attrs={'id': part_of_speech})
                             if not present_part:
-                                part_of_speech_text = entry.find(
-                                    'span', attrs={'topic': True, 'bookmark': True, 'fk': False, 'class': 'Ref'}).text
-                                m_list.append([2, part_of_speech_text])
+                                present_part = entry.find(
+                                    'span', attrs={'id': self.word+'_8'})
+                                # this condition is for yak
+                            if not present_part:
+                                part_of_speech_element = entry.find(
+                                    'span', attrs={'topic': True, 'bookmark': True, 'fk': False, 'class': 'Ref'})
+                                if part_of_speech_element:
+                                    part_of_speech_text = part_of_speech_element.text
+                                    m_list.append([2, part_of_speech_text])
+                                else:
+                                    m_list.append(
+                                        [2, part_of_speech.split('_')+'.'])
                                 present_part = entry
                                 get_def_list(m_list, present_part)
                                 continue
-                            get_part(m_list, present_part)
+                            else:
+                                get_part(m_list, present_part)
 
                     elif not entry.find('span', attrs={'class': 'pos'}):
                         continue
